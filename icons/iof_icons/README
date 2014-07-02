@@ -1,0 +1,5 @@
+Generetated form Osmarender ISSOM IOF icons
+http://mafc-tajfutas.uw.hu/como/Osmarenderer.zip
+
+for i in *.svg; do inkscape -z -e "${i%%.*}.png" -w 32 -h 32 $i; done
+
