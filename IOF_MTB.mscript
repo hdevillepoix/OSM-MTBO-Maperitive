@@ -1,0 +1,6 @@
+use-ruleset location=Rules/MTB_Orienteering-hadry.mrules as-alias=MTBO
+apply-ruleset
+load-source map.osm
+set-print-bounds-geo
+generate-contours interval=5
+zoom 16
