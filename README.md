@@ -4,7 +4,7 @@ OSM-MTBO-Maperitive
 
 Moutainbike Orienteering map rendering ruleset for Maperitive (OSM)
 
-The OpenStreetMap database is particularly suited to create MTB Orineteering maps (unlike foot orienteering, pretty much everything needed for MTB'O is standard mapping in OSM, at least for recreationnal and training purposes).
+The OpenStreetMap database is particularly suited to create MTB Orienteering maps (unlike foot orienteering, pretty much everything needed for MTB'O is standard mapping in OSM, at least for recreational and training purposes).
 
 
 
