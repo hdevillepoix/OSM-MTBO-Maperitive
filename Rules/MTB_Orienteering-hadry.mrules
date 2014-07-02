@@ -1,0 +1,600 @@
+// Maperitive rendering ruleset for hiking maps. The map style resembles 
+// that of paper hiking maps produced by Alpine Association of Slovenia (http://www.pzs.si/). 
+// http://maperitive.net
+
+// Created by Igor Brejc, adapted for orienteering by Jens Kastensson, adapted for MTB Orienteering by Hadrien Devillepoix
+// Released under the Creative Commons Attribution-ShareAlike 3.0 License (http://creativecommons.org/licenses/by-sa/3.0/)
+
+// History:
+// 2014-05-23: Adapted for MTB Orienteering by Hadrien Devillepoix
+
+
+features
+	shelter : amenity=shelter
+	place : node[place OR landuse=farmyard] area[place OR landuse=farmyard]
+	power tower : @isOneOf(power, tower, station, sub_station)
+
+	points, areas
+		tree : natural=tree	
+		memorial : historic=memorial
+		special manmade : leisure=picnic_table OR information=map OR information=board OR amenity=bench OR amenity=waste_basket OR historic=wayside_cross
+		small tower : amenity=hunting_stand
+		
+	points
+//		peak : natural=peak
+		cave : natural=cave_entrance
+		rock : megalith_type=menhir
+		mtb obstacle : barrier
+		
+	lines
+		line barrier : barrier=wall OR barrier=fence OR barrier=hedge OR amenity=school
+//		highway cycleway : highway=cycleway	
+		highway service : highway=service
+		highway pedestrian : highway=pedestrian	
+		highway steps : highway=steps	
+		aerialway : aerialway
+		cliff : natural=cliff
+		contour major : contour[@isMulti(elevation, 50)]
+		contour minor : contour[@isMulti(elevation, 5) and not @isMulti(elevation, 50)]
+		hiking route : relation[type=route route=foot] way[trailblazed=yes]
+		road major : highway=motorway OR highway=motorway_link OR highway=trunk OR highway=trunk_link OR highway=primary OR highway=primary_link OR highway=secondary OR highway=tertiary OR highway=secondary_link
+		road minor : highway=residential OR highway=unclassified OR highway=living_street
+//    http://wiki.openstreetmap.org/wiki/Key:tracktype
+		track fast : (highway=track AND (tracktype=grade1 OR tracktype=grade2 OR NOT tracktype)) OR highway=cycleway
+		track slow : highway=track AND (tracktype=grade4 OR tracktype=grade3)
+		track difficult : highway=track AND tracktype=grade5
+//    http://wiki.openstreetmap.org/wiki/Key:surface
+		path fast : ((highway=footway OR highway=path OR highway=bridleway) AND (surface=paved OR surface=asphalt OR surface=concrete OR surface=compacted))
+		path slow : ((highway=footway OR highway=path OR highway=bridleway) AND (surface=ground  OR surface=dirt OR surface=earth OR surface=grass OR surface=gravel OR smoothness=very_horrible OR smoothness=horrible OR surface=fine_gravel OR mtb:scale<=1 OR (NOT surface AND NOT smoothness AND NOT mtb:scale)))
+		path difficult : ((highway=footway OR highway=path OR highway=bridleway) AND (surface=mud OR surface=sand OR smoothness=impassable OR mtb:scale>=2))
+		railway : railway=rail
+		power line : @isOneOf(power, line, minor_line)
+		river : waterway=river
+		intermittent stream : waterway=stream AND intermittent=yes
+		stream : waterway=stream AND NOT intermittent=yes
+		canal : waterway=canal
+		drain : waterway=drain OR waterway=ditch
+		noaccess : (NOT tunnel=yes) AND ((access=no AND highway) OR @isOneOf(highway,motorway,motorway_link,trunk,trunk_link,primary))
+//		noaccess : (NOT tunnel=yes) AND ((access=no AND highway) OR @isOneOf(highway,motorway,motorway_link,trunk,trunk_link,primary,secondary,tertiary))
+		cutline : man_made=cutline
+		hedge : barrier=hedge
+		weir : waterway=weir
+
+		
+	areas
+		leisure golf : leisure=golf_course
+		leisure pitch : leisure=pitch
+		village green : landuse=village_green
+		grass : landuse=grass OR natural=grassland OR natural=scrub
+		fell : natural=fell
+		open_land : natural=meadow OR landuse=meadow OR landuse=farm
+		semi open_land : natural=heath OR landuse=vineyard
+		church : amenity=place_of_worship AND (religion=christian OR religion=Christian)
+		building : building=yes OR building=dormitory OR building=church OR building=office OR building=apartments OR building=hotel OR building=house OR building=residential OR building=terrace OR building=commercial OR building=industrial OR building=retail OR building=warehouse OR building=cathedral OR building=chapel OR building=school OR building=hospital OR building=transportation OR building=university
+		residential : landuse=residential OR landuse=industrial OR landuse=cemetery
+		forest : landuse=forest OR natural=wood OR leisure=park OR woodland=virgin
+		water : natural=water OR waterway=riverbank OR landuse=reservoir OR landuse=basin
+		nature reserve : boundary=national_park OR boundary=protected_area OR leisure=nature_reserve
+		military : landuse=military OR military=danger_area OR access=no
+		highway pedestrian : highway=pedestrian		
+		paved area: amenity=parking
+		
+properties
+
+   //Forest map, uncomment these:
+	map-background-color : white
+
+
+   //Urban map, uncomment these
+	//map-background-color : #FAEDDE
+
+
+	curved : false
+	text-halo-width : 30%
+	text-halo-opacity : 0.75
+
+		
+rules
+
+	target : highway steps
+		define
+			shape : custom
+			shape-def : -1,1, -1,-1, 1,-1, 1,1;Z
+			shape-spacing : 1
+			shape-size : 1.5
+			shape-aspect : 3
+			fill-color : #000000
+			line-style : none
+		draw : shape
+		
+	target : road *
+		if : road major
+			define
+				line-color : #F1CDAB
+				line-width : 6
+				border-style : solid
+				border-color : #B1B1B1 black 20%
+				border-width : 15%
+
+		else
+			define
+				line-color : #F1CDAB
+            //Genova
+				line-width : 5
+            //other 
+				//line-width : 3 
+				border-style : solid
+				border-color : #B1B1B1 black 20%
+				border-width : 15%
+		for : tunnel=yes
+			define
+				border-style : dot
+		for : bridge=yes
+			define
+				border-color : #000
+		draw : line
+		
+
+	target : highway pedestrian
+		for : not area
+			define
+				line-color : #F1CDAB
+            //Genova
+				line-width : 4
+            // other:
+				//line-width : 2.5
+				border-style : solid
+				border-color : #B1B1B1 black 20%
+				border-width : 15%
+			for : tunnel=yes
+				define
+					//border-style : dot
+			for : bridge=yes
+				define
+					border-color : #000
+			draw : line	
+			
+	target : building
+		define
+			fill-color : #9D9D9D
+			line-style : solid
+			line-width : 1
+			line-color : #B1B1B1 black 50%
+			curved : false
+		draw : fill
+		draw : line
+		
+	target: tree
+		define
+			icon-image : icons/iof_icons/special_vegetation_1.png	
+			icon-width : 20 
+		draw : icon
+
+	target: cave
+		define
+			icon-image : icons/iof_icons/pit_rocky.png
+			icon-width : 30
+		draw : icon
+	target: rock
+		define
+			icon-image : icons/iof_icons/boulder_large.png
+			icon-width : 30
+		draw : icon
+
+	target: special manmade
+		define
+			icon-image : icons/iof_icons/special_manmade_2.png
+			icon-width : 20 
+		draw : icon
+
+	target: small tower
+		define
+			icon-image : icons/iof_icons/tower_small.png
+			icon-width : 20 
+		draw : icon
+
+
+	target : peak
+		define
+			fill-color : black
+			line-style : none
+			shape : circle
+			shape-size : 11:3;15:8
+		draw : shape
+
+		
+	target: memorial
+		define
+			icon-image : icons/iof_icons/special_manmade_2.png
+			icon-width : 20
+		draw : icon
+		
+	target : power tower
+		define
+			shape : square
+			shape-size : 16:7;20:12
+			fill-color : black
+			line-style : none
+		draw : shape
+		
+// lines
+		
+	target : power line
+		define
+			curved : false
+			line-width : 1
+		draw : line
+
+		
+	target: hiking path
+		define
+			line-color : white
+			line-opacity : 0.8
+			line-width : 11:1;14:2;15:4
+			line-offset : 14:0;15:3;16:5
+			line-offset-sides : left
+			line-style : dash
+		draw : line
+
+	target : railway*
+		define
+			min-zoom : 13
+			line-color : gray
+			line-width : 2
+		draw : line
+		define
+			min-zoom : 15
+			text-align-horizontal : center
+			text-align-vertical : center
+		draw:text
+	target : railway rail
+		define
+			min-zoom : 13
+			line-style : dashlong
+			line-color : white
+			line-width : 2
+			border-style : solid
+			border-color : gray
+			border-width : 25%
+		draw : line
+		define
+			min-zoom : 6
+			max-zoom : 13
+			line-style : none
+			line-color : white black 30%
+			line-width : 6:1;8:1;12:1.5
+		draw : line
+
+
+	target : highway cycleway
+		define
+			line-color : #F1CDAB
+			line-width : 3
+			border-style : solid
+			border-color : #B1B1B1 black 20%
+			border-width : 15%
+		for : tunnel=yes
+			define
+				border-style : dot
+		for : bridge=yes
+			define
+				border-color : #000
+		draw : line
+
+	target : highway service
+		define
+			line-color : #F1CDAB
+			line-width : 4
+			border-style : solid
+			border-color : #B1B1B1 black 20%
+			border-width : 15%
+		for : tunnel=yes
+			define
+				border-style : dot
+		for : bridge=yes
+			define
+				border-color : #000
+		draw : line
+
+		
+	target : track fast
+		define
+			line-color : black
+			line-style : solid
+			border-style : none
+			line-width : 3
+		draw : line
+	target : track medium
+		define
+			line-color : black
+			line-style : dashdot
+			border-style : none
+			line-width : 3
+		draw : line
+	target : track slow 
+		define
+			line-color : black
+			line-style : dash
+			border-style : none
+			line-width : 3
+		draw : line
+	target : track difficult
+		define
+			line-color : black
+			line-style : dot
+			border-style : none
+			line-width : 2        
+		draw : line
+
+
+	target : path fast
+		define
+			line-color : black
+			line-style : solid
+			border-style : none
+			line-width : 2  
+		draw : line
+	target : path medium
+		define
+			line-color : black
+			line-style : dashdot
+			border-style : none
+			line-width : 2  
+		draw : line
+	target : path slow 
+		define
+			line-color : black
+			line-style : dash
+			border-style : none
+			line-width : 2  
+		draw : line
+	target : path difficult
+		define
+			line-color : black
+			line-style : dot
+			border-style : none
+			line-width : 2          
+		draw : line
+
+    
+    
+      
+	target : track major
+		define
+			line-color : black
+			line-style : dash
+			border-style : none
+			line-width : 2.5			
+		for : tunnel=yes
+			define
+				border-style : dot
+		for : bridge=yes
+			define
+				border-color : #000
+		draw : line
+
+	target : track minor
+		define
+			line-color : black
+			line-style : dash
+			border-style : none
+			line-width : 2			
+		draw : line
+
+	target : foot path*
+		define
+			line-color : black
+			line-style : dash
+			border-style : none
+		if : *major
+			define
+				line-width : 1.5
+		else
+			define
+				line-width : 1
+		draw : line
+
+	target : cliff
+		define
+			line-color : black white 50%
+			line-style : solid
+			border-style : none
+			line-width : 4
+		draw : line
+		
+
+	target : river
+		define
+			line-color : #289EE0
+			line-width : 5
+		draw : line
+
+	target : stream
+		define			
+			line-style: solid
+			line-color : #289EE0
+			line-width : 2
+		draw : line
+
+	target : intermittent stream
+		define			
+			line-style: dash
+			line-color : #289EE0
+			line-width : 2
+		draw : line
+
+	target : canal
+		define
+			line-color : #289EE0
+			line-width : 2
+		draw : line
+
+	target : drain
+		define
+			line-color : #289EE0
+			line-width : 2
+		draw : line
+		
+// areas
+	target: memorial
+		define
+			fill-color : #ffffff black 60%
+			line-style : none
+		draw : fill
+
+	target : nature_reserve
+		define
+			line-color : #8DC56C black 20%
+			line-opacity : 1
+			line-width : 3
+			line-style : dash
+			font-size : 3:3;12:12
+			text-color : green
+			font-weight : normal
+			text : @up(name)
+		draw : line
+
+	target : military
+		define
+			fill-color : red
+			fill-hatch : vertical
+			fill-hatch-color : white
+			fill-hatch-opacity : 0
+			line-style : none
+		draw : fill
+
+	target : residential 
+		define
+			fill-color : #a1a133
+			line-style : none
+		draw : fill
+
+	target : paved area
+		define
+			fill-color : #EFD6BF
+			line-style : none
+		draw : fill
+
+	target : highway pedestrian
+		define
+			fill-color : #EFD6BF
+			line-style : none
+		draw : fill
+
+	target : water
+		define
+			fill-color : #21D1FF
+			line-style : solid
+			line-width : 1
+		draw : fill
+		
+	target : leisure pitch
+		define
+			fill-color : #89D2AE
+			line-style : solid
+			line-width : 1
+		draw : fill
+
+	target : forest
+		define
+			fill-color : white
+			line-style : none
+		draw : fill
+
+	target : cutline
+		if : width >= 30
+			define
+				line-width : 16:30;18:120
+		elseif : width >= 20
+			define
+				line-width : 16:22;18:90
+		elseif : width >= 10
+			define
+				line-width : 16:15;18:60
+		elseif : width >= 5
+			define
+				line-width : 16:8;18:30
+		else 
+			define
+				line-width : 16:4;18:15
+		define
+			line-color : #FAB837
+			line-opacity : 1
+			line-style : solid
+		draw : line
+
+
+
+
+
+
+
+	target : leisure golf
+		define
+			fill-color : #FAB837
+			line-style : none
+		draw : fill
+		
+	target : grass
+		define
+			fill-color : #FAB837
+			line-style : none
+		draw : fill
+		
+	target : fell
+		define
+			fill-color : #C5FF5B black 10%
+			line-style : none
+		draw : fill
+		
+	target : open_land
+		define
+			fill-color : #FAB837
+			line-style : none
+		draw : fill
+
+	target : semi open_land
+		define
+			fill-color : #FAB837 white 50%
+			line-style : none
+		draw : fill
+
+		
+	target: contour*
+		define
+			line-color : #CE6611
+			curved : true
+		if : *major
+			define
+				line-width : 1.6
+		else
+			define
+				line-width : 1
+		draw : contour
+
+	target: noaccess
+		define
+			icon-image: icons/Exit.16.png
+			icon-width: 15
+			shape-mode: linear
+			shape-orientation: flow
+			shape-spacing: 10
+			curved: true
+		draw: icon
+	
+	target: hedge
+		define
+			line-color : #3dff17
+			line-style : solid
+			border-style : none
+			line-width : 1.6
+		draw : line
+
+//	target: mtb obstacle
+//		define
+//			icon-image: icons/iof_icons/mtb_obstacle.png
+//			icon-width: 40
+//			shape-orientation: flow
+//			curved: true
+//		draw: icon
+		
