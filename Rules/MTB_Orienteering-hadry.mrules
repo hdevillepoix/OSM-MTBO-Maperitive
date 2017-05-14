@@ -7,6 +7,7 @@
 
 // History:
 // 2014-05-23: Adapted for MTB Orienteering by Hadrien Devillepoix
+// 2017-05-14: Added support for cycleways, certain areas (orchard...), and oneway arrows
 
 
 features
@@ -27,6 +28,7 @@ features
 		mtb obstacle : barrier
 		
 	lines
+		oneway : oneway=yes OR oneway=true OR oneway=-1
 		line barrier : barrier=wall OR barrier=fence OR barrier=hedge OR amenity=school
 //		highway cycleway : highway=cycleway	
 		highway service : highway=service
@@ -38,15 +40,15 @@ features
 		contour minor : contour[@isMulti(elevation, 5) and not @isMulti(elevation, 50)]
 		hiking route : relation[type=route route=foot] way[trailblazed=yes]
 		road major : highway=motorway OR highway=motorway_link OR highway=trunk OR highway=trunk_link OR highway=primary OR highway=primary_link OR highway=secondary OR highway=tertiary OR highway=secondary_link
-		road minor : highway=residential OR highway=unclassified OR highway=living_street
+		road minor : (highway=residential OR highway=unclassified OR highway=living_street)  AND NOT surface=gravel
 //    http://wiki.openstreetmap.org/wiki/Key:tracktype
-		track fast : (highway=track AND (tracktype=grade1 OR tracktype=grade2 OR NOT tracktype)) OR highway=cycleway
-		track slow : highway=track AND (tracktype=grade4 OR tracktype=grade3)
+		track fast : (highway=track AND (tracktype=grade1 OR tracktype=grade2)) OR (highway=unclassified AND surface=gravel)
+		track slow : highway=track AND (tracktype=grade4 OR tracktype=grade3 OR NOT tracktype)
 		track difficult : highway=track AND tracktype=grade5
 //    http://wiki.openstreetmap.org/wiki/Key:surface
-		path fast : ((highway=footway OR highway=path OR highway=bridleway) AND (surface=paved OR surface=asphalt OR surface=concrete OR surface=compacted))
-		path slow : ((highway=footway OR highway=path OR highway=bridleway) AND (surface=ground  OR surface=dirt OR surface=earth OR surface=grass OR surface=gravel OR smoothness=very_horrible OR smoothness=horrible OR surface=fine_gravel OR mtb:scale<=1 OR (NOT surface AND NOT smoothness AND NOT mtb:scale)))
-		path difficult : ((highway=footway OR highway=path OR highway=bridleway) AND (surface=mud OR surface=sand OR smoothness=impassable OR mtb:scale>=2))
+		path fast : ((highway=footway OR highway=path OR highway=bridleway) AND (surface=paved OR surface=asphalt OR surface=concrete OR surface=compacted OR surface=unpaved)) OR (highway=cycleway and mtb:scale:imba<=1)
+		path slow : ((highway=footway OR highway=path OR highway=bridleway) AND (surface=ground  OR surface=dirt OR surface=earth OR surface=grass OR surface=gravel OR smoothness=very_horrible OR smoothness=horrible OR surface=fine_gravel OR mtb:scale<=1 OR (NOT surface AND NOT smoothness AND NOT mtb:scale))) OR (highway=cycleway and mtb:scale:imba=2) OR (highway=cycleway AND NOT mtb:scale:imba)
+		path difficult : ((highway=footway OR highway=path OR highway=bridleway) AND (surface=mud OR surface=sand OR smoothness=impassable OR mtb:scale>=2)) OR (highway=cycleway and mtb:scale:imba>=3)
 		railway : railway=rail
 		power line : @isOneOf(power, line, minor_line)
 		river : waterway=river
@@ -65,13 +67,14 @@ features
 		leisure golf : leisure=golf_course
 		leisure pitch : leisure=pitch
 		village green : landuse=village_green
-		grass : landuse=grass OR natural=grassland OR natural=scrub
+		grass : landuse=grass OR natural=grassland
 		fell : natural=fell
-		open_land : natural=meadow OR landuse=meadow OR landuse=farm
-		semi open_land : natural=heath OR landuse=vineyard
+		open_land : natural=meadow OR landuse=meadow OR landuse=farm OR landuse=farmland OR landuse=vineyard OR landuse=orchard
+		semi open_land : natural=heath OR natural=scrub
 		church : amenity=place_of_worship AND (religion=christian OR religion=Christian)
 		building : building=yes OR building=dormitory OR building=church OR building=office OR building=apartments OR building=hotel OR building=house OR building=residential OR building=terrace OR building=commercial OR building=industrial OR building=retail OR building=warehouse OR building=cathedral OR building=chapel OR building=school OR building=hospital OR building=transportation OR building=university
 		residential : landuse=residential OR landuse=industrial OR landuse=cemetery
+		outcrop : natural=bare_rock
 		forest : landuse=forest OR natural=wood OR leisure=park OR woodland=virgin
 		water : natural=water OR waterway=riverbank OR landuse=reservoir OR landuse=basin
 		nature reserve : boundary=national_park OR boundary=protected_area OR leisure=nature_reserve
@@ -95,6 +98,21 @@ properties
 
 		
 rules
+
+	target: oneway
+		define 
+			min-zoom : 15
+			shape : custom
+			shape-def : -10,10;-5,10;5,0;-5,-10;-10,-10;0,0;Z
+			shape-size : 20
+			shape-aspect : 0.75
+			shape-spacing : 10
+			fill-color : #CC00FF
+			line-style : none
+		for : oneway=-1
+			define
+				angle : 180
+		draw : shape 
 
 	target : highway steps
 		define
@@ -341,6 +359,16 @@ rules
 			border-style : none
 			line-width : 2  
 		draw : line
+		for : bridge=yes
+			define
+				line-offset : 12.9:0;13:5
+				line-offset-sides : left
+				line-color : black
+				line-style : solid
+				border-style : none
+				line-width :  1
+			draw : line
+
 	target : path slow 
 		define
 			line-color : black
@@ -435,6 +463,8 @@ rules
 			line-width : 2
 		draw : line
 		
+
+		
 // areas
 	target: memorial
 		define
@@ -460,12 +490,6 @@ rules
 			fill-hatch : vertical
 			fill-hatch-color : white
 			fill-hatch-opacity : 0
-			line-style : none
-		draw : fill
-
-	target : residential 
-		define
-			fill-color : #a1a133
 			line-style : none
 		draw : fill
 
@@ -495,11 +519,26 @@ rules
 			line-width : 1
 		draw : fill
 
+
+	target : residential 
+		define
+			fill-color : #a1a133
+			line-style : none
+		draw : fill
+
 	target : forest
 		define
 			fill-color : white
 			line-style : none
 		draw : fill
+		
+	target : outcrop
+		define
+			fill-color : #B1B1B1 black 30%
+			line-style : none
+		draw : fill
+		
+		
 
 	target : cutline
 		if : width >= 30
@@ -573,14 +612,28 @@ rules
 		draw : contour
 
 	target: noaccess
-		define
-			icon-image: icons/Exit.16.png
-			icon-width: 15
-			shape-mode: linear
-			shape-orientation: flow
-			shape-spacing: 10
-			curved: true
-		draw: icon
+// 		define
+// 			icon-image: icons/Exit.16.png
+// 			icon-width: 15
+// 			shape-mode: linear
+// 			shape-orientation: flow
+// 			shape-spacing: 10
+// 			curved: true
+// 		draw: icon
+		
+		define 
+			min-zoom : 15
+			shape : custom
+			shape-def : -10,10;-5,10;5,0;-5,-10;-10,-10;0,0;10,10;5,10;-5,0;5,-10;10,-10;0,0;Z
+			shape-size : 20
+			shape-aspect : 0.75
+			shape-spacing : 10
+			fill-color : #CC00FF
+			line-style : none
+		for : oneway=-1
+			define
+				angle : 180
+		draw : shape 
 	
 	target: hedge
 		define
